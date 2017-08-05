@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+	<html lang="ja">
+		<head>
+			<meta charset ="UTF-8">
+			<title>TEST</title>
+			<script type="text/javascript" src="./d3.js" ></script>
+		        <style type="text/css" >
+		        #d3point {
+		        	width:600px;
+		        	margin: 0 auto;
+		        			        	
+		        	}
+
+		        .bar{
+		                fill : rgba(255,0,0,0.5);
+		        	} 
+		        	
+		        .axis line{
+		         	stroke-opacity:2;
+		         	stroke-width:2px;
+		         	shape-rendering:crispEdges;
+		         	}  
+		         	
+		         .axis path{
+		         	stroke-width:2px;
+		         	}
+		         	
+		         .axis text{
+		         	font-size:12px;
+		         	}
+		         	
+		         .grid line{  
+		         	stroke: white;
+		         	stroke-opacity:0.3;
+		         	shape-rendering:crispEdges;
+		         	
+		         	}
+		         	
+		         .grid path{
+		         	stroke-width:0;
+		         	}
+		         .arealine{
+		                   fill:rgba(100,100,0,0.3);
+		        	}
+		         		
+		        </style>
+		</head>
+		<body>
+		<div id="d3point">
+		</div>
+		<script type="text/javascript" >
+			//グラフエリアの定義 
+			var height =400;
+			var width = 590;
+			var pad = 30;
+			var drawArea = [
+					{"x":2*pad,      "y":pad},
+					{"x":2*pad,      "y":height-2*pad},					
+					{"x":width-pad,"y":height-2*pad},
+					{"x":width-pad,"y":pad}
+					];
+			 
+			
+			//各種データ	
+			
+			var data = [
+					{"date": "2017/01/10", "value": 300, "number":3,  "color":"red",   "category": "ab"},
+					{"date": "2017/01/02", "value": 500, "number":5,  "color":"blue",  "category": "cd"},
+					{"date": "2017/01/04", "value": 300, "number":3,  "color":"red",   "category": "ef"},
+					{"date": "2017/01/03", "value": 700, "number":7,  "color":"green", "category": "ab"},
+					{"date": "2017/01/08", "value": 200, "number":2,  "color":"yellow","category": "ab"},
+					{"date": "2017/01/05", "value": 400, "number":4,  "color":"red",   "category": "cd"},
+					{"date": "2017/01/07", "value": 600, "number":6,  "color":"blue",  "category": "ab"},
+					{"date": "2017/01/06", "value": 1200,"number":12, "color":"green", "category": "ef"},
+					{"date": "2017/01/09", "value": 90,  "number":1,  "color":"blue",  "category": "cd"},
+					{"date": "2017/01/11", "value": 500, "number":5,  "color":"black", "category": "ef"},
+					{"date": "2017/01/13", "value": 200, "number":2,  "color":"green", "category": "ab"},
+				   ];
+			var label = [
+					{"name":"Earnings","color":"rgba(255,255,0,10)"},
+					{"name":"Sales",   "color":"rgba(255,0,0,0.5)"}
+					];
+		         console.log(label);
+			//データをソート(xに相当するデータで)	   
+			data.sort(function(a,b){
+			                 	if(a.date < b.date)return -1;
+			                 	else if(a.date > b.date) return 1;
+			                 	return 0;
+			                 	});			               
+			 
+			 
+			                 	
+			//X軸の開始データ、終点データ
+			var startdate = new Date("2017/01/01");		
+			var enddate = new Date("2017/01/14");
+			
+			 			
+				   
+			//表示範囲を設定
+			//第1軸	   
+			var Yscale = d3.scaleLinear()
+					.domain([d3.min(data, function(d){return d['value']-50;}),d3.max(data,function(d){return d['value'] +200;}) ])
+					.range([height-2*pad, pad]); 
+					
+			var Xscale = d3.scaleTime()
+					.domain([startdate , enddate ])
+					.range([2*pad, width-pad]);
+			//第2軸		
+			var YpointScale = d3.scaleLinear()
+					.domain([d3.min(data, function(d){return d['number']-1;}),d3.max(data,function(d){return d['number'] +2;}) ])
+					.range([height-2*pad, pad]); 
+					
+					
+			//軸設定
+			//第1軸		 
+			var Xaxis = d3.axisBottom(Xscale)
+					.ticks(7)
+					.tickFormat(d3.timeFormat("%Y/%m/%d"));					
+					
+			var Yaxis = d3.axisLeft(Yscale)					
+					.ticks(8);
+					
+					
+			//第2軸		
+			var X2ndaxis = d3.axisTop(Xscale)
+					.ticks(0)
+					.tickFormat("");
+					
+			var Y2ndaxis = d3.axisRight(YpointScale)
+					.ticks(8);
+			
+					
+			//grid線作成		
+			var Xgrid = d3.axisBottom(Xscale)
+					.ticks(14)
+					.tickSize(3*pad-height) //ここでgrid
+					.tickFormat("");
+					
+			var Ygrid = d3.axisLeft(Yscale)
+					.ticks(8)
+					.tickSize(2*pad-width) 
+					.tickFormat("");
+			
+			//グラフエリア内の囲い
+			var axisLine = d3.line()
+					.x(function(d){return d.x;})
+					.y(function(d){return d.y;});
+			
+					
+			//折れ線設定
+			var valueLine = d3.line()
+					.x(function(d){return Xscale(new Date(d['date']));})
+					.y(function(d){return YpointScale(d['number']);})
+				        .curve(d3.curveCardinal); 
+				        
+			//svgを作成	
+			var svg = d3.select("#d3point")
+					.append("svg")
+					.attr("width",width)
+					.attr("height",height);
+					
+                               	//テキスト関連
+				svg.selectAll("text")
+					.data(label)
+					.enter()
+					.append("text")
+					.text(function(d){ return d.name})
+					.style("fill", function(d){ return d.color;})
+					.attr("x" , width-3*pad)
+					.attr("y" , function(d,i){return 2*pad+ 30*i ;});							
+					
+				svg.selectAll("text")
+					.data(data)
+					.enter()
+					.append("text")
+					.text(function(d){
+						return "(" + d['date'] + " , " +d['value'] + ")" ;})
+					.attr("x",function(d){return Xscale(new Date(d['date']));})
+					.attr("y",function(d){return Yscale(d['value']);})					
+					.attr("font-family","sans-serif")
+					.attr("font-size","12px")
+					.attr("fill","red");
+					
+					
+				//グラフエリア内の色を変えるための囲い	
+				svg.append("path")
+					.data(drawArea) 
+					.attr("d" ,axisLine(drawArea))
+					.attr("class","arealine");
+					
+				//軸、グラフエリア
+				//第1軸描画	
+				svg.append("g")
+					.call(Xaxis)
+					.attr("class","axis")
+					.attr("transform","translate(0," + (height - 2*pad) + ")" )
+					.selectAll("text")
+					 	.style("text-anchor","end")
+					 	.attr("transform","rotate(-30)");
+					 	
+				svg.append("g")
+					.call(Yaxis)
+					.attr("class","axis")
+					.attr("transform","translate("+ 2*pad +",0)");
+					
+				//第2軸描画	
+				svg.append("g")
+					.call(X2ndaxis)
+					.attr("class","axis")
+					.attr("transform","translate(0,"+ pad + ")");
+				
+				svg.append("g")
+					.call(Y2ndaxis)
+					.attr("class","axis")
+					.attr("transform", "translate("+ (width-pad)+",0)");
+					
+				//grid描画
+				svg.append("g")
+					.call(Xgrid)
+					.attr("class","grid")
+					.attr("transform","translate(0,"+(height-2*pad)+")");
+				
+				svg.append("g")
+					.call(Ygrid)
+					.attr("class","grid")
+					.attr("transform","translate("+ 2*pad+",0)");
+					
+	
+					
+					
+				//↓データの描画
+				//散布点の描画	
+				svg.selectAll("circle")
+					.data(data)
+					.enter()
+					.append("circle")
+					.attr("cx",function(d){return Xscale( new Date(d['date']));})
+					.attr("cy",function(d){return YpointScale(d['number']);})
+					.attr("r",3)
+					.attr("fill" , function(d){return d.color})
+
+					
+				//折れ線の描画	
+				svg.append("path")
+					.data(data)
+					.attr("class","line")
+					.attr("d",valueLine(data))
+					.attr("stroke","yellow")
+					.attr("fill","none");					
+					
+				//棒グラフの描画	
+				svg.selectAll("rect")
+					.data(data)
+					.enter()
+					.append("rect")
+					.attr("x", function(d){ return Xscale(new Date(d.date))-5;})
+					.attr("y", function(d){ return Yscale(d.value)})
+					.attr("width", 10)
+					.attr("height", function(d){ return height - Yscale(d.value)-2*pad;})
+					.attr("class","bar");
+					
+					
+
+					
+				
+
+		</script>
+</html>
