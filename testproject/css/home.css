@@ -1,0 +1,30 @@
+﻿body{
+	width: 550px;
+	height:750px;
+	background-image:url("../image/");
+	background-size:100% 100%;
+	
+}
+.container{
+	position:absolute;
+	width:300px;
+	height:200px;
+	top:50%;
+	left:40%;
+	padding-top:20px;
+	padding-left:20px;
+	border: 2px solid;
+}
+
+.inputbox{
+	width:200px;
+	margin-top:10px;
+	margin-bottom:20px;
+        margin-left:30px;
+	opacity:0.7;
+}
+.btn{
+	width:100px;
+	height:30px;
+	margin-left:80px;
+}
